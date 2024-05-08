@@ -1,4 +1,3 @@
-
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import config
