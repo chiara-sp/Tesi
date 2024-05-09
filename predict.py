@@ -1,20 +1,25 @@
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
+# predict.py
+
+import tensorflow as tf
 import numpy as np
 import config
+from data_loader import load_and_preprocess_image  # Import the shared function
 
-model = load_model('waste_classification_model.h5')
+model = tf.keras.models.load_model('waste_classification_model.h5')
 
 def predict(image_path):
-    img = image.load_img(image_path, target_size=(config.IMAGE_WIDTH, config.IMAGE_HEIGHT))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
+    img = load_and_preprocess_image(image_path)
+    if img is None:
+        return "Image not found or error in loading image."
 
-    prediction = model.predict(img_array)
-    return prediction
+    img_array = tf.expand_dims(img, axis=0)  # Add a batch dimension
+    predictions = model.predict(img_array)
+    predicted_class_index = np.argmax(predictions[0])
+    return predicted_class_index, predictions[0][predicted_class_index]
 
 if __name__ == "__main__":
     image_path = 'path_to_new_image.jpg'
-    prediction = predict(image_path)
-    print('Predicted class:', prediction)
+    predicted_class_index, confidence = predict(image_path)
+    print(f'Predicted class index: {predicted_class_index} with confidence {confidence:.2f}')
+
 

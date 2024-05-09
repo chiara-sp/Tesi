@@ -5,5 +5,5 @@ IMAGE_HEIGHT = 150
 IMAGE_CHANNELS = 3
 BATCH_SIZE = 20
 EPOCHS = 10
-TRAIN_DATA_PATH = 'dataset/train'
-TEST_DATA_PATH = 'dataset/test'
+TRAIN_DATA_PATH = '/Users/chiaraspirito/Desktop/dataset-resized/train'
+TEST_DATA_PATH = '/Users/chiaraspirito/Desktop/dataset-resized'

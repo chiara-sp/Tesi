@@ -1,22 +1,26 @@
 # train.py
 
-from data_loader import create_generators
+from data_loader import create_datasets
 from model import build_model
 import config
+import os
 
 def main():
-    train_generator, validation_generator = create_generators()
+    # Check data paths
+    if not os.path.exists(config.TRAIN_DATA_PATH):
+        raise Exception(f"Training data path does not exist: {config.TRAIN_DATA_PATH}")
+    if not os.path.exists(config.TEST_DATA_PATH):
+        raise Exception(f"Testing data path does not exist: {config.TEST_DATA_PATH}")
+    # Proceed with data loading and model training
+    train_dataset, validation_dataset = create_datasets()
     model = build_model()
 
     model.fit(
-        train_generator,
-        steps_per_epoch=100,  # Adjust based on your dataset size
+        train_dataset,
         epochs=config.EPOCHS,
-        validation_data=validation_generator,
-        validation_steps=50  # Adjust based on validation dataset size
+        validation_data=validation_dataset
     )
-
-    model.save('waste_classification_model.h5')  # Saving the trained model
+    model.save('waste_classification_model.h5')
 
 if __name__ == "__main__":
     main()

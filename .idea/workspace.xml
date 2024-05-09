@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="642c0d67-c180-47b0-aaae-724799337784" name="Changes" comment="secondo commit">
+    <list default="true" id="642c0d67-c180-47b0-aaae-724799337784" name="Changes" comment="terzo commit">
+      <change beforePath="$PROJECT_DIR$/.idea/firstThesisAttempt.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/firstThesisAttempt.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_loader.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,13 +139,22 @@
       <option name="project" value="LOCAL" />
       <updated>1715171655741</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="terzo commit">
+      <option name="closed" value="true" />
+      <created>1715260520324</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1715260520324</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="primo commit" />
     <MESSAGE value="secondo commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="secondo commit" />
+    <MESSAGE value="terzo commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="terzo commit" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
