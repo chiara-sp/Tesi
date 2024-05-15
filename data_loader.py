@@ -14,6 +14,7 @@ def load_and_preprocess_image(path):
         print("File not found:", path)
         return None
 
+
 def prepare_dataset(data_directory, batch_size):
     dataset = tf.keras.utils.image_dataset_from_directory(
         data_directory,

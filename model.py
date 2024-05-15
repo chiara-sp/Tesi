@@ -8,11 +8,11 @@ import config
 
 def build_model():
     # Set up the exponential decay learning rate
-    initial_learning_rate = 0.01
+    initial_learning_rate = 0.001
     lr_schedule = ExponentialDecay(
         initial_learning_rate,
-        decay_steps=100,
-        decay_rate=0.96,
+        decay_steps=1000,
+        decay_rate=0.9,
         staircase=True)
 
     model = tf.keras.Sequential([

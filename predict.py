@@ -16,10 +16,13 @@ def predict(image_path):
     predictions = model.predict(img_array)
     predicted_class_index = np.argmax(predictions[0])
     confidence = predictions[0][predicted_class_index]
-    return predicted_class_index, confidence
+
+    class_names= ['cardboard', 'glass','metal','paper','plastic','trash']
+    predicted_class_name=class_names[predicted_class_index]
+    return predicted_class_name, confidence
 
 if __name__ == "__main__":
-    image_path = '/Users/chiaraspirito/Desktop/dataset-resized/train/cardboard/cardboard10.jpg'  # Example image path
+    image_path = '/Users/chiaraspirito/Desktop/dataset-resized/train/trash/trash1.jpg'  # Example image path
     predicted_class_index, confidence = predict(image_path)
     print(f'Predicted class index: {predicted_class_index} with confidence {confidence:.2f}')
 
