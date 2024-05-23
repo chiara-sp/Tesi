@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="642c0d67-c180-47b0-aaae-724799337784" name="Changes" comment="accuracy leggermente migliorata">
+    <list default="true" id="642c0d67-c180-47b0-aaae-724799337784" name="Changes" comment="bozza image augmentation e data loader ottimizzato">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_loader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -53,7 +52,7 @@
   "keyToString": {
     "Python.predict.executor": "Run",
     "Python.testTensorflow.executor": "Run",
-    "Python.train.executor": "Run",
+    "Python.train.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
@@ -228,7 +227,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715767932715</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="bozza image augmentation e data loader ottimizzato">
+      <option name="closed" value="true" />
+      <created>1716206313811</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1716206313811</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -239,7 +246,8 @@
     <MESSAGE value="accuracy molto bassa" />
     <MESSAGE value="accuracy molto bassa 2" />
     <MESSAGE value="accuracy leggermente migliorata" />
-    <option name="LAST_COMMIT_MESSAGE" value="accuracy leggermente migliorata" />
+    <MESSAGE value="bozza image augmentation e data loader ottimizzato" />
+    <option name="LAST_COMMIT_MESSAGE" value="bozza image augmentation e data loader ottimizzato" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -251,8 +259,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/data_loader.py</url>
-          <line>66</line>
-          <option name="timeStamp" value="11" />
+          <line>115</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/data_loader.py</url>
+          <line>118</line>
+          <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

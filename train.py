@@ -1,6 +1,7 @@
 # train.py
 
 from data_loader import create_datasets
+from data_loader import create_datasets_v2
 from model import build_model
 from model import ResNet18
 import config
@@ -10,14 +11,16 @@ def main():
     # Check data paths
     if not os.path.exists(config.TRAIN_DATA_PATH):
         raise Exception(f"Training data path does not exist: {config.TRAIN_DATA_PATH}")
-    #if not os.path.exists(config.TEST_DATA_PATH):
-    #    raise Exception(f"Testing data path does not exist: {config.TEST_DATA_PATH}")
+    if not os.path.exists(config.TEST_DATA_PATH):
+        raise Exception(f"Testing data path does not exist: {config.TEST_DATA_PATH}")
     # Proceed with data loading and model training
-    train_dataset, validation_dataset = create_datasets()
+    #train_dataset, validation_dataset = create_datasets_v2()
 
+    train_dataset, validation_dataset = create_datasets()
     print("Train Dataset Classes:", train_dataset.class_names)
     print("Validation Dataset Classes:", validation_dataset.class_names)
-    model = ResNet18()
+    ''''''
+    model = build_model()
     model.fit(
         train_dataset,
         epochs=config.EPOCHS,

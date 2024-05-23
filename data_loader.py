@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import config
 from PIL import Image
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 
 def load_and_preprocess_image(path):
@@ -19,8 +20,6 @@ def load_and_preprocess_image(path):
     except tf.errors.NotFoundError:
         print("File not found:", path)
         return None
-
-
 
 def data_Augmentation(train, test):
     # Slight Augmentation settings for training
@@ -64,6 +63,8 @@ def data_Augmentation(train, test):
         seed=42,  # Seed for random number generator to ensure reproducibility
         shuffle=False  # Data is not shuffled; order retained from DataFrame
     )
+    print(f"Number of batches in train_generator: {len(train_gen)}")
+    print(f"Number of batches in val_generator: {len(test_gen)}")
     return train_gen, test_gen
 
 def prepare_dataset(data_directory, batch_size):
@@ -76,9 +77,84 @@ def prepare_dataset(data_directory, batch_size):
     )
     return dataset
 
+
+def get_filenames_and_labels(directory):
+    filenames = []
+    labels = []
+    class_names = sorted(os.listdir(directory)) [1:] # Make sure directory only contains valid class folders
+    label_dict = {name: index for index, name in enumerate(class_names)}
+
+    for label_name in class_names:
+        class_dir = os.path.join(directory, label_name)
+        class_files = [os.path.join(class_dir, name) for name in os.listdir(class_dir) if
+                       name.endswith(('.png', '.jpg', '.jpeg'))]  # Make sure to filter only image files
+        filenames.extend(class_files)
+        labels.extend([label_dict[label_name]] * len(class_files))
+
+    return filenames, labels, class_names
+
+
 def create_datasets():
+    filenames, labels, class_names = get_filenames_and_labels(config.TRAIN_DATA_PATH)
+    filenames = np.array(filenames)
+    labels = np.array(labels)
+
+    # Stratified split
+    train_files, val_files, train_labels, val_labels = train_test_split(
+        filenames, labels, test_size=0.3, random_state=42, stratify=labels)
+
+    # Creating file datasets for both training and validation
+    train_data = tf.data.Dataset.from_tensor_slices((train_files, train_labels))
+    val_data = tf.data.Dataset.from_tensor_slices((val_files, val_labels))
+
+    # Apply the original function to prepare datasets
+    train_dataset = train_data.map(lambda x, y: (load_and_preprocess_image(x), tf.one_hot(y, depth=len(class_names))))
+    validation_dataset = val_data.map(
+        lambda x, y: (load_and_preprocess_image(x), tf.one_hot(y, depth=len(class_names))))
+
+    # Batch the datasets
+    train_dataset = train_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+    validation_dataset = validation_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+
+    return train_dataset, validation_dataset
+
+'''def create_datasets():
     train_dataset = prepare_dataset(config.TRAIN_DATA_PATH, config.BATCH_SIZE)
-    validation_dataset = prepare_dataset(config.TEST_DATA_PATH, config.BATCH_SIZE)
+    #validation_dataset = prepare_dataset(config.TEST_DATA_PATH, config.BATCH_SIZE)
+
+    train_dataset, validation_dataset = data_Augmentation(train_dataset, validation_dataset)
+    return train_dataset, validation_dataset'''
+
+def create_datasets_v2():
+    train_df = prepare_dataset_v2()
+    # Split with stratification
+    train_dataset, validation_dataset = train_test_split(train_df, test_size=0.3, random_state=42, stratify=train_df['label'])
+
+    # Print the number of images in each set
+    print(f"Number of images in the training set: {len(train_dataset)}")
+    print(f"Number of images in the validation set: {len(validation_dataset)}")
+
+    # 1. Class distribution in the entire dataset
+    overall_distribution = train_df['label'].value_counts(normalize=True) * 100
+
+    # 2. Class distribution in the training set
+    train_distribution = train_dataset['label'].value_counts(normalize=True) * 100
+
+    # 3. Class distribution in the validation set
+    val_distribution = validation_dataset['label'].value_counts(normalize=True) * 100
+
+    print("Class distribution in the entire dataset:\n")
+    print(overall_distribution.round(2))
+    print('-' * 40)
+
+    print("\nClass distribution in the training set:\n")
+    print(train_distribution.round(2))
+    print('-' * 40)
+
+    print("\nClass distribution in the validation set:\n")
+    print(val_distribution.round(2))
+
+    train_dataset, validation_dataset= data_Augmentation(train_dataset, validation_dataset)
     return train_dataset, validation_dataset
 
 ''''''
@@ -108,6 +184,7 @@ def prepare_dataset_v2():
 
     # Convert the collected data into a DataFrame
     df = pd.DataFrame(data, columns=['filepath', 'label'])
-    return df
+
     # Display the first few entries of the DataFrame
     #df.head()
+    return df
