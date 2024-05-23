@@ -25,7 +25,7 @@ def build_model():
         MaxPooling2D(2, 2),
         Flatten(),
         Dense(512, activation='relu'),
-        Dropout(0.5),  # Example position for Dropout
+        Dropout(0.5),
         Dense(6, activation='softmax')
     ])
 

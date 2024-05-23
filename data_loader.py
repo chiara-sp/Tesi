@@ -1,4 +1,3 @@
-# data_loader.py
 import os
 import pandas as pd
 import tensorflow as tf
@@ -9,6 +8,10 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 import numpy as np
 
+class DatasetWithClassNames:
+    def __init__(self, dataset, class_names):
+        self.dataset = dataset
+        self.class_names = class_names
 
 def load_and_preprocess_image(path):
     try:
@@ -21,51 +24,6 @@ def load_and_preprocess_image(path):
         print("File not found:", path)
         return None
 
-def data_Augmentation(train, test):
-    # Slight Augmentation settings for training
-    train_datagen = ImageDataGenerator(
-        rescale=1. / 255,  # Normalize pixel values to [0,1]
-        rotation_range=45,  # Randomly rotate the images by up to 45 degrees
-        width_shift_range=0.15,  # Randomly shift images horizontally by up to 15% of the width
-        height_shift_range=0.15,  # Randomly shift images vertically by up to 15% of the height
-        zoom_range=0.15,  # Randomly zoom in or out by up to 15%
-        horizontal_flip=True,  # Randomly flip images horizontally
-        vertical_flip=True,  # Randomly flip images vertically
-        shear_range=0.05,  # Apply slight shear transformations
-        brightness_range=[0.9, 1.1],  # Vary brightness between 90% to 110% of original
-        channel_shift_range=10,  # Randomly shift channels (can change colors of images slightly but less aggressively)
-        fill_mode='nearest'  # Fill in missing pixels using the nearest filled value
-    )
-    # Only rescaling for validation
-    val_datagen = ImageDataGenerator(rescale=1. / 255)
-
-    # Using flow_from_dataframe to generate batches
-    # Generate training batches from the training dataframe
-    train_gen = train_datagen.flow_from_dataframe(
-        dataframe=train,  # DataFrame containing training data
-        x_col="filepath",  # Column with paths to image files
-        y_col="label",  # Column with image labels
-        target_size=(384, 384),  # Resize all images to size of 384x384
-        batch_size=32,  # Number of images per batch
-        class_mode='categorical',  # One-hot encode labels
-        seed=42,  # Seed for random number generator to ensure reproducibility
-        shuffle=False  # Data is not shuffled; order retained from DataFrame
-    )
-
-    # Generate validation batches from the validation dataframe
-    test_gen = val_datagen.flow_from_dataframe(
-        dataframe=test,  # DataFrame containing validation data
-        x_col="filepath",  # Column with paths to image files
-        y_col="label",  # Column with image labels
-        target_size=(384, 384),  # Resize all images to size of 384x384
-        batch_size=32,  # Number of images per batch
-        class_mode='categorical',  # One-hot encode labels
-        seed=42,  # Seed for random number generator to ensure reproducibility
-        shuffle=False  # Data is not shuffled; order retained from DataFrame
-    )
-    print(f"Number of batches in train_generator: {len(train_gen)}")
-    print(f"Number of batches in val_generator: {len(test_gen)}")
-    return train_gen, test_gen
 
 def prepare_dataset(data_directory, batch_size):
     dataset = tf.keras.utils.image_dataset_from_directory(
@@ -93,6 +51,19 @@ def get_filenames_and_labels(directory):
 
     return filenames, labels, class_names
 
+# Function for data augmentation
+def augment_image(image, label):
+    image = tf.image.random_flip_left_right(image)
+    image = tf.image.random_flip_up_down(image)
+    image = tf.image.random_brightness(image, max_delta=0.1)
+    image = tf.image.random_contrast(image, lower=0.9, upper=1.1)
+    image = tf.image.random_saturation(image, lower=0.9, upper=1.1)
+    image = tf.image.random_hue(image, max_delta=0.1)
+    image = tf.image.rot90(image, k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
+    image = tf.image.random_jpeg_quality(image, 75, 100)
+    image = tf.image.random_crop(image, size=[config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3])
+    image = tf.clip_by_value(image, 0.0, 1.0)
+    return image, label
 
 def create_datasets():
     filenames, labels, class_names = get_filenames_and_labels(config.TRAIN_DATA_PATH)
@@ -112,53 +83,30 @@ def create_datasets():
     validation_dataset = val_data.map(
         lambda x, y: (load_and_preprocess_image(x), tf.one_hot(y, depth=len(class_names))))
 
+    # Create augmented datasets
+    augmented_datasets = [train_dataset.map(augment_image) for _ in range(9)]  # Create 9 augmented datasets for train
+    augmented_datasets_val= [validation_dataset.map(augment_image) for _ in range (3)]
+
+    # Concatenate original and augmented datasets
+    full_train_dataset = train_dataset.concatenate(augmented_datasets[0])
+    for aug_dataset in augmented_datasets[1:]:
+        full_train_dataset = full_train_dataset.concatenate(aug_dataset)
+    full_val_dataset = validation_dataset.concatenate(augmented_datasets_val[0])
+    for aug_dataset in augmented_datasets_val[1:]:
+        full_val_dataset = full_val_dataset.concatenate(aug_dataset)
+
     # Batch the datasets
-    train_dataset = train_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-    validation_dataset = validation_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+    full_train_dataset = full_train_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+    full_val_dataset = full_val_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
-    return train_dataset, validation_dataset
+    # Wrap datasets with class names
+    wrapped_train_dataset = DatasetWithClassNames(full_train_dataset, class_names)
+    wrapped_validation_dataset = DatasetWithClassNames(full_val_dataset, class_names)
 
-'''def create_datasets():
-    train_dataset = prepare_dataset(config.TRAIN_DATA_PATH, config.BATCH_SIZE)
-    #validation_dataset = prepare_dataset(config.TEST_DATA_PATH, config.BATCH_SIZE)
-
-    train_dataset, validation_dataset = data_Augmentation(train_dataset, validation_dataset)
-    return train_dataset, validation_dataset'''
-
-def create_datasets_v2():
-    train_df = prepare_dataset_v2()
-    # Split with stratification
-    train_dataset, validation_dataset = train_test_split(train_df, test_size=0.3, random_state=42, stratify=train_df['label'])
-
-    # Print the number of images in each set
-    print(f"Number of images in the training set: {len(train_dataset)}")
-    print(f"Number of images in the validation set: {len(validation_dataset)}")
-
-    # 1. Class distribution in the entire dataset
-    overall_distribution = train_df['label'].value_counts(normalize=True) * 100
-
-    # 2. Class distribution in the training set
-    train_distribution = train_dataset['label'].value_counts(normalize=True) * 100
-
-    # 3. Class distribution in the validation set
-    val_distribution = validation_dataset['label'].value_counts(normalize=True) * 100
-
-    print("Class distribution in the entire dataset:\n")
-    print(overall_distribution.round(2))
-    print('-' * 40)
-
-    print("\nClass distribution in the training set:\n")
-    print(train_distribution.round(2))
-    print('-' * 40)
-
-    print("\nClass distribution in the validation set:\n")
-    print(val_distribution.round(2))
-
-    train_dataset, validation_dataset= data_Augmentation(train_dataset, validation_dataset)
-    return train_dataset, validation_dataset
+    return wrapped_train_dataset, wrapped_validation_dataset
 
 ''''''
-def printIMG(train, test):
+def printIMG(train):
     # Iterate over each trash type (folder) to display images
     # Set up subplots
     for i, garbage in enumerate(train.filenames[:10]):
@@ -170,21 +118,3 @@ def printIMG(train, test):
         plt.tight_layout()
         plt.title(garbage)
         plt.show()
-
-def prepare_dataset_v2():
-    # Initialize an empty list to store image file paths and their respective labels
-    data = []
-    label = os.listdir(config.TRAIN_DATA_PATH)
-    label.sort()
-    # Loop through each garbage type and collect its images' file paths
-    for garbage_type in label[1:7]:
-        for file in os.listdir(os.path.join(config.TRAIN_DATA_PATH, garbage_type)):
-            # Append the image file path and its trash type (as a label) to the data list
-            data.append((os.path.join(config.TRAIN_DATA_PATH, garbage_type, file), garbage_type))
-
-    # Convert the collected data into a DataFrame
-    df = pd.DataFrame(data, columns=['filepath', 'label'])
-
-    # Display the first few entries of the DataFrame
-    #df.head()
-    return df

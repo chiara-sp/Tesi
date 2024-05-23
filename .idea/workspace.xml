@@ -4,9 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="642c0d67-c180-47b0-aaae-724799337784" name="Changes" comment="bozza image augmentation e data loader ottimizzato">
+    <list default="true" id="642c0d67-c180-47b0-aaae-724799337784" name="Changes" comment="data augm 21/05">
+      <change afterPath="$PROJECT_DIR$/data_loader_2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_loader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/predict.py" beforeDir="false" afterPath="$PROJECT_DIR$/predict.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -52,13 +55,13 @@
   "keyToString": {
     "Python.predict.executor": "Run",
     "Python.testTensorflow.executor": "Run",
-    "Python.train.executor": "Debug",
+    "Python.train.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.train">
+  <component name="RunManager" selected="Python.predict">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="firstThesisAttempt" />
       <option name="ENV_FILES" value="" />
@@ -149,8 +152,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.train" />
         <item itemvalue="Python.predict" />
+        <item itemvalue="Python.train" />
         <item itemvalue="Python.testTensorflow" />
       </list>
     </recent_temporary>
@@ -235,7 +238,15 @@
       <option name="project" value="LOCAL" />
       <updated>1716206313811</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="data augm 21/05">
+      <option name="closed" value="true" />
+      <created>1716455402948</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1716455402948</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -247,7 +258,8 @@
     <MESSAGE value="accuracy molto bassa 2" />
     <MESSAGE value="accuracy leggermente migliorata" />
     <MESSAGE value="bozza image augmentation e data loader ottimizzato" />
-    <option name="LAST_COMMIT_MESSAGE" value="bozza image augmentation e data loader ottimizzato" />
+    <MESSAGE value="data augm 21/05" />
+    <option name="LAST_COMMIT_MESSAGE" value="data augm 21/05" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -256,16 +268,6 @@
           <url>file://$PROJECT_DIR$/main.py</url>
           <line>8</line>
           <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/data_loader.py</url>
-          <line>115</line>
-          <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/data_loader.py</url>
-          <line>118</line>
-          <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
