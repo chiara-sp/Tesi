@@ -5,9 +5,7 @@ from keras.src.legacy.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 import config
 from PIL import Image
-from sklearn.model_selection import train_test_split
-import numpy as np
-from sklearn.model_selection import StratifiedKFold
+
 
 class DatasetWithClassNames:
     def __init__(self, dataset, class_names):
@@ -56,65 +54,39 @@ def get_filenames_and_labels(directory):
 def augment_image(image, label):
     image = tf.image.random_flip_left_right(image)
     image = tf.image.random_flip_up_down(image)
-    image = tf.image.random_brightness(image, max_delta=0.1)
-    image = tf.image.random_contrast(image, lower=0.9, upper=1.1)
-    image = tf.image.random_saturation(image, lower=0.9, upper=1.1)
-    image = tf.image.random_hue(image, max_delta=0.1)
-    image = tf.image.rot90(image, k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
-    image = tf.image.random_jpeg_quality(image, 75, 100)
-    image = tf.image.random_crop(image, size=[config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3])
+    image = tf.image.random_brightness(image, max_delta=0.2)
+    image = tf.image.random_contrast(image, lower=0.8, upper=1.2)
+    image = tf.image.random_saturation(image, lower=0.8, upper=1.2)
+    image = tf.image.random_hue(image, max_delta=0.2)
     image = tf.clip_by_value(image, 0.0, 1.0)
     return image, label
 
-def create_datasets(n_splits=5):
-    filenames, labels, class_names = get_filenames_and_labels(config.TRAIN_DATA_PATH)
-    filenames = np.array(filenames)
-    labels = np.array(labels)
+def create_datasets_for_fold(train_files, train_labels, val_files, val_labels, class_names):
+    # Creating file datasets for both training and validation
+    train_data = tf.data.Dataset.from_tensor_slices((train_files, train_labels))
+    val_data = tf.data.Dataset.from_tensor_slices((val_files, val_labels))
 
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+    # Apply the original function to prepare datasets
+    train_dataset = train_data.map(lambda x, y: (load_and_preprocess_image(x), tf.one_hot(y, depth=len(class_names))))
+    validation_dataset = val_data.map(lambda x, y: (load_and_preprocess_image(x), tf.one_hot(y, depth=len(class_names))))
 
-    fold = 1
-    for train_index, val_index in skf.split(filenames, labels):
-        print(f"Training fold {fold}/{n_splits}...")
-        train_files, val_files = filenames[train_index], filenames[val_index]
-        train_labels, val_labels = labels[train_index], labels[val_index]
+    #Create augmented datasets
+    augmented_datasets = [train_dataset.map(augment_image) for _ in range(9)]  # Create 9 augmented datasets for train
+    augmented_datasets_val = [validation_dataset.map(augment_image) for _ in range(3)]
 
-        # Creating file datasets for both training and validation
-        train_data = tf.data.Dataset.from_tensor_slices((train_files, train_labels))
-        val_data = tf.data.Dataset.from_tensor_slices((val_files, val_labels))
+    # Concatenate original and augmented datasets
+    full_train_dataset = train_dataset.concatenate(augmented_datasets[0])
+    for aug_dataset in augmented_datasets[1:]:
+        full_train_dataset = full_train_dataset.concatenate(aug_dataset)
+    full_val_dataset = validation_dataset.concatenate(augmented_datasets_val[0])
+    for aug_dataset in augmented_datasets_val[1:]:
+        full_val_dataset = full_val_dataset.concatenate(aug_dataset)
 
-        # Apply the original function to prepare datasets
-        train_dataset = train_data.map(
-            lambda x, y: (load_and_preprocess_image(x), tf.one_hot(y, depth=len(class_names))))
-        validation_dataset = val_data.map(
-            lambda x, y: (load_and_preprocess_image(x), tf.one_hot(y, depth=len(class_names))))
+    # Batch the datasets
+    train_dataset = full_train_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+    validation_dataset = full_val_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
-        # Create augmented datasets
-        augmented_datasets = [train_dataset.map(augment_image) for _ in
-                              range(9)]  # Create 9 augmented datasets for train
-        augmented_datasets_val = [validation_dataset.map(augment_image) for _ in range(3)]
-
-        # Concatenate original and augmented datasets
-        full_train_dataset = train_dataset.concatenate(augmented_datasets[0])
-        for aug_dataset in augmented_datasets[1:]:
-            full_train_dataset = full_train_dataset.concatenate(aug_dataset)
-
-        full_val_dataset = validation_dataset.concatenate(augmented_datasets_val[0])
-        for aug_dataset in augmented_datasets_val[1:]:
-            full_val_dataset = full_val_dataset.concatenate(aug_dataset)
-
-        # Batch the datasets
-        full_train_dataset = full_train_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-        full_val_dataset = full_val_dataset.batch(config.BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
-
-        # Wrap datasets with class names
-        wrapped_train_dataset = DatasetWithClassNames(full_train_dataset, class_names)
-        wrapped_validation_dataset = DatasetWithClassNames(full_val_dataset, class_names)
-
-        yield wrapped_train_dataset, wrapped_validation_dataset  # Yield the datasets for the current fold
-
-        fold += 1
-
+    return train_dataset, validation_dataset
 ''''''
 def printIMG(train):
     # Iterate over each trash type (folder) to display images

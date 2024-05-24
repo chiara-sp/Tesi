@@ -1,57 +1,63 @@
 # train.py
 
-from data_loader import create_datasets
+from data_loader import create_datasets_for_fold
 from model import build_model
 from model import ResNet18
 import config
 import os
+from sklearn.model_selection import train_test_split
+import numpy as np
+from sklearn.model_selection import StratifiedKFold
+from data_loader import get_filenames_and_labels
 
-def main():
-    n_splits = 5  # Number of folds for cross-validation
-    fold_results = []
+def perform_cross_validation(filenames, labels, class_names, num_folds=2):
+    skf = StratifiedKFold(n_splits=num_folds, shuffle=True, random_state=42)
+    fold_no = 1
+    results = []
 
-    for fold, (train_dataset_with_names, validation_dataset_with_names) in enumerate(create_datasets(n_splits=n_splits),
-                                                                                     start=1):
-        print(f"Training fold {fold}/{n_splits}...")
+    for train_index, val_index in skf.split(filenames, labels):
+        print(f"Training on fold {fold_no}...")
 
-        train_dataset = train_dataset_with_names.dataset
-        validation_dataset = validation_dataset_with_names.dataset
+        train_files, val_files = filenames[train_index], filenames[val_index]
+        train_labels, val_labels = labels[train_index], labels[val_index]
 
-        train_class_names = train_dataset_with_names.class_names
-        validation_class_names = validation_dataset_with_names.class_names
-        print("Train Dataset Classes:", train_class_names)
-        print("Validation Dataset Classes:", validation_class_names)
+        # Create datasets for this fold
+        train_dataset, validation_dataset = create_datasets_for_fold(train_files, train_labels, val_files, val_labels, class_names)
 
-        # Build and compile your model
-        model = build_model()  # Make sure you have a build_model function or similar
-        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        # Build a new model for this fold
+        model = build_model()
 
         # Train the model
-        model.fit(
+        history = model.fit(
             train_dataset,
             epochs=config.EPOCHS,
             validation_data=validation_dataset
         )
 
-        # Evaluate the model
-        val_loss, val_accuracy = model.evaluate(validation_dataset)
-        print(f"Fold {fold} - Validation Accuracy: {val_accuracy:.4f}, Validation Loss: {val_loss:.4f}")
+        # Evaluate the model on the validation dataset
+        loss, accuracy = model.evaluate(validation_dataset)
+        print(f"Fold {fold_no} - Loss: {loss}, Accuracy: {accuracy}")
 
-        # Save results for this fold
-        fold_results.append({
-            'fold': fold,
-            'val_loss': val_loss,
-            'val_accuracy': val_accuracy
-        })
+        results.append((loss, accuracy))
+        fold_no += 1
 
-    # Save the final model after the last fold
-    model.save('waste_classification_model.keras')
+    return results
+def main():
+    # Check data paths
+    if not os.path.exists(config.TRAIN_DATA_PATH):
+        raise Exception(f"Training data path does not exist: {config.TRAIN_DATA_PATH}")
 
-    # Print summary of results
-    for result in fold_results:
-        print(
-            f"Fold {result['fold']} - Validation Accuracy: {result['val_accuracy']:.4f}, Validation Loss: {result['val_loss']:.4f}")
+    filenames, labels, class_names = get_filenames_and_labels(config.TRAIN_DATA_PATH)
+    filenames = np.array(filenames)
+    labels = np.array(labels)
 
+    # Perform cross-validation
+    results = perform_cross_validation(filenames, labels, class_names, num_folds=5)
+
+    # Print the average performance across all folds
+    avg_loss = np.mean([result[0] for result in results])
+    avg_accuracy = np.mean([result[1] for result in results])
+    print(f"Average Loss: {avg_loss}, Average Accuracy: {avg_accuracy}")
 
 if __name__ == "__main__":
     main()
